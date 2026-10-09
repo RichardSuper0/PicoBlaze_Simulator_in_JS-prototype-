@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PicoBlaze IDE - High Performance Edition</title>
+    <style>
+        :root {
+            --bg-main: #1e1e1e;
+            --bg-side: #252526;
+            --bg-nav: #2c2c2c;
+            --border-color: #3c3c3c;
+            --text-main: #d4d4d4;
+            --accent-primary: #0e639c;
+            --accent-secondary: #333333;
+            --error-line-bg: rgba(255, 0, 0, 0.25);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html {
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .ide-grid {
+            display: grid;
+            grid-template-rows: 50px 1fr 180px;
+            height: 100vh;
+        }
+
+        .toolbar {
+            background-color: var(--bg-nav);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            cursor: grab;
+            user-select: none;
+        }
+        .toolbar:active {
+            cursor: grabbing;
+        }
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
+        .btn {
+            background-color: var(--accent-secondary);
+            color: #fff;
+            border: 1px solid #555;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+        .btn:hover { background-color: #444; }
+        .btn-assemble { background-color: var(--accent-primary); border-color: #1177bb; }
+        .btn-assemble:hover { background-color: #1177bb; }
+        .btn-debug { background-color: #d13438; border-color: #e81123; }
+        .btn-debug:hover { background-color: #e81123; }
+
+        .workspace {
+            display: flex;
+            background-color: var(--bg-main);
+            overflow: hidden;
+        }
+        .line-container {
+            width: 50px;
+            background-color: #1a1a1a;
+            border-right: 1px solid var(--border-color);
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+            user-select: none;
+        }
+        .line-number {
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            color: #5a5a5a;
+            padding-right: 10px;
+            height: 21px;
+            line-height: 21px;
+            transition: background-color 0.2s;
+        }
+        .line-number.error-mark {
+            color: #ff3333;
+            background-color: var(--error-line-bg);
+            font-weight: bold;
+        }
+        .editor-container {
+            flex: 1;
+            position: relative;
+        }
+        .editor-textarea {
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            color: var(--text-main);
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 21px;
+            padding: 15px;
+            border: none;
+            resize: none;
+            outline: none;
+            tab-size: 4;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .output-panel {
+            background-color: var(--bg-side);
+            border-top: 1px solid var(--border-color);
+            display: grid;
+            grid-template-rows: 30px 1fr;
+        }
+        .panel-header {
+            background-color: #202021;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #858585;
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+        .console-log {
+            background-color: #000;
+            color: #9cdcfe;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            padding: 12px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .console-error-text {
+            color: #f48771;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ide-grid">
+        <div class="toolbar" id="main-toolbar">
+            <button class="btn btn-assemble" id="action-assemble">Assembla</button>
+            <button class="btn btn-debug" id="action-debug">Debugga</button>
+            <button class="btn" id="action-docs">Documentazione</button>
+            <button class="btn" id="action-regs">Registri PicoBlaze</button>
+            <button class="btn" id="action-credits">Crediti</button>
+            <button class="btn" id="action-faq">Faq</button>
+            <button class="btn" id="action-auth">Registrati/Accedi</button>
+        </div>
+
+        <div class="workspace">
+            <div class="line-container" id="gutter-lines"></div>
+            <div class="editor-container">
+                <textarea class="editor-textarea" id="GuiCI" spellcheck="false" autocomplete="off" placeholder="; Scrivi il codice PicoBlaze qua..."></textarea>
+            </div>
+        </div>
+
+        <div class="output-panel">
+            <div class="panel-header">Output Console</div>
+            <div class="console-log" id="console-output">> IDE Pronto. Inserisci il codice sorgente.</div>
+        </div>
+    </div>
+
+    <script>
+        const GuiContentCI = {
+            element: document.getElementById('GuiCI'),
+            getContentCI: function() {
+                return this.element.value;
+            }
+        };
+
+        function getContentCI() {
+            return GuiContentCI.getContentCI();
+        }
+
+        const gutter = document.getElementById('gutter-lines');
+        const consoleOut = document.getElementById('console-output');
+        const slider = document.getElementById('main-toolbar');
+        let activeErrorLine = null;
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('btn')) return;
+            isDown = true;
+            slider.classList.add('active');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        slider.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+        function updateLineNumbers() {
+            const lines = getContentCI().split('\n').length;
+            let html = '';
+            for (let i = 1; i <= Math.max(lines, 1); i++) {
+                const isError = (i === activeErrorLine) ? ' error-mark' : '';
+                html += `<div class="line-number${isError}" id="ln-${i}">${i}</div>`;
+            }
+            gutter.innerHTML = html;
+        }
+
+        GuiContentCI.element.addEventListener('input', () => {
+            activeErrorLine = null; 
+            updateLineNumbers();
+        });
+        
+        GuiContentCI.element.addEventListener('scroll', () => {
+            gutter.scrollTop = GuiContentCI.element.scrollTop;
+        });
+
+        updateLineNumbers();
+
+        const PicoBlazeAssembler = {
+            validOpcodes: ['LOAD', 'ADD', 'SUB', 'AND', 'OR', 'XOR', 'COMPARE', 'OUTPUT', 'INPUT', 'JUMP', 'CALL', 'RETURN'],
+            parseAndResolve: function() {
+                const rawCode = getContentCI();
+                const lines = rawCode.split('\n');
+                consoleOut.innerHTML = `> [Assembler]: Lettura buffer GuiCI...\n`;
+                activeErrorLine = null;
+
+                for (let i = 0; i < lines.length; i++) {
+                    let currentLine = lines[i].trim();
+                    if (currentLine === "" || currentLine.startsWith(';')) continue;
+                    let firstWord = currentLine.split(/[\s,]+/).toUpperCase();
+                    if (firstWord === 'ADDRESS') continue;
+
+                    if (!this.validOpcodes.includes(firstWord)) {
+                        activeErrorLine = i + 1;
+                        this.triggerCompilationError(activeErrorLine, lines[i]);
+                        return false;
+                    }
+                }
+                updateLineNumbers();
+                consoleOut.innerHTML += `> [Assembler]: Compilazione completata con successo!\n> [System]: Pronto per l'esecuzione hardware.`;
+                return true;
+            },
+            triggerCompilationError: function(lineNumber, lineContent) {
+                updateLineNumbers();
+                consoleOut.innerHTML += `<span class="console-error-text">> Output: line code ${lineNumber} error\n> Sintassi non riconosciuta in: "${lineContent.trim()}"</span>`;
+                const targetLine = document.getElementById(`ln-${lineNumber}`);
+                if (targetLine) {
+                    targetLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        };
+
+        document.getElementById('action-assemble').addEventListener('click', () => {
+            PicoBlazeAssembler.parseAndResolve();});
+document.getElementById('action-debug').addEventListener('click', () => {
+consoleOut.innerHTML = > [Debug]: Avvio modulo di tracciamento errori...\n;
+PicoBlazeAssembler.parseAndResolve();
+});
+const showInDevelopment = (featureName) => {
+consoleOut.innerHTML = > [System]: La sezione "${featureName}" è attualmente in fase di sviluppo/integrazione da parte di Teo.;
+};
+document.getElementById('action-docs').addEventListener('click', () => showInDevelopment('Documentazione'));
+document.getElementById('action-regs').addEventListener('click', () => showInDevelopment('Registri PicoBlaze'));
+document.getElementById('action-credits').addEventListener('click', () => showInDevelopment('Crediti'));
+document.getElementById('action-faq').addEventListener('click', () => showInDevelopment('Faq'));
+document.getElementById('action-auth').addEventListener('click', () => showInDevelopment('Registrati/Accedi'));
