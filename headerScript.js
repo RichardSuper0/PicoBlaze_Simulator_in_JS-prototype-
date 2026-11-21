@@ -9,6 +9,9 @@ let machineCode = [];
 for (let i = 0; i < 4096; i++)
   machineCode.push({hex : "00000", line : 0});
 let default_base_of_literals_in_assembly = 16;
+let reverse_nameregs = [];
+for (let i = 0; i < 16; i++)
+	reverse_nameregs.push([]);
 function displayRegistersAndFlags() {
   if (playing && !document.getElementById("shouldWeUpdateRegisters").checked)
     return;
@@ -365,10 +368,12 @@ function setupLayout() {
     document.getElementById("assemblyCode").style.height = windowHeight + "px";
     document.getElementById("buttons").style.top =
         heightOfTheGreetings + windowHeight + 200 + 3 * 4 +
-        document.getElementById("assemblyCodeHeader").clientHeight + 20 + "px";
+        document.getElementById("assemblyCodeHeader").clientHeight + 20 +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
     document.getElementById("whyClickAssemble").style.top =
         heightOfTheGreetings + windowHeight + 200 + 3 * 4 + 20 + 5 +
-        document.getElementById("assemblyCodeHeader").clientHeight + 20 + "px";
+        document.getElementById("assemblyCodeHeader").clientHeight + 20 + 
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
     const heightOfTheDivWithTheInstructionAboutAssembling =
         document.getElementById("whyClickAssemble").clientHeight +
         ((document.getElementById("deleteTheProgram") &&
@@ -378,12 +383,14 @@ function setupLayout() {
     document.getElementById("machineCodeHeader").style.top =
         20 + heightOfTheGreetings + windowHeight + 4 * 4 + 20 + 200 +
         heightOfTheDivWithTheInstructionAboutAssembling +
-        document.getElementById("assemblyCodeHeader").clientHeight + "px";
+        document.getElementById("assemblyCodeHeader").clientHeight + 
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
     document.getElementById("divWithMachineCode").style.top =
         40 + heightOfTheGreetings + windowHeight + 4 * 4 + 20 + 200 +
         heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
-        document.getElementById("machineCodeHeader").clientHeight + "px";
+        document.getElementById("machineCodeHeader").clientHeight + 
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
 
     document.getElementById("divWithMachineCode").style.height =
         windowHeight + "px";
@@ -391,13 +398,15 @@ function setupLayout() {
         heightOfTheGreetings + 2 * windowHeight + 3 * 4 + 30 + 200 +
         heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
-        document.getElementById("machineCodeHeader").clientHeight + 40 + "px";
+        document.getElementById("machineCodeHeader").clientHeight + 40 + 
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
     document.getElementById("simulationButtons").style.top =
         60 + heightOfTheGreetings + 2 * windowHeight + 3 * 4 + 30 + 200 +
         heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
-        document.getElementById("emulationHeader").clientHeight + "px";
+        document.getElementById("emulationHeader").clientHeight + 
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
     document.getElementsByTagName("footer")[0].style.top =
         (document.getElementById("mainNavigation")
              ? document.getElementById("mainNavigation").clientHeight
@@ -407,18 +416,23 @@ function setupLayout() {
         heightOfTheDivWithTheInstructionAboutAssembling + 30 +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
-        document.getElementById("emulationHeader").clientHeight + "px";
+        document.getElementById("emulationHeader").clientHeight +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 +
+		  "px";
     document.getElementById("divWithExamples").style.top =
         20 + heightOfTheGreetings + windowHeight + 4 +
-        document.getElementById("assemblyCodeHeader").clientHeight + "px";
+        document.getElementById("assemblyCodeHeader").clientHeight +
+		  // (/Firefox/.test(navigator.userAgent) | 0) * 3 +
+		  "px";
     document.getElementById("simulationResults").style.top =
         60 + heightOfTheGreetings + windowHeight * 2 + 200 + 65 + 50 - 30 +
         210 + is_UART_enabled * 260 + 50 +
         heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
-        document.getElementById("emulationHeader").clientHeight + "px";
-
+        document.getElementById("emulationHeader").clientHeight +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 +
+		  "px";
     document.getElementById("simulationResults").style.height =
         windowHeight + "px";
     document.getElementById("graphicalResults").style.top =
@@ -426,20 +440,24 @@ function setupLayout() {
         heightOfTheDivWithTheInstructionAboutAssembling + 200 + 65 + 50 - 30 +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
-        document.getElementById("emulationHeader").clientHeight + "px";
+        document.getElementById("emulationHeader").clientHeight +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 +
+		  "px";
     document.getElementById("UART_enable_button").style.top =
         60 + heightOfTheGreetings + windowHeight * 2 + 200 + 65 + 50 - 30 +
         210 + heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
         document.getElementById("emulationHeader").clientHeight +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 +
         "px"; // Usually has no effect, see below...
     document.getElementById("UART_IO").style.top =
         60 + heightOfTheGreetings + windowHeight * 2 + 200 + 65 + 50 - 30 +
         210 + 50 + heightOfTheDivWithTheInstructionAboutAssembling +
         document.getElementById("assemblyCodeHeader").clientHeight +
         document.getElementById("machineCodeHeader").clientHeight +
-        document.getElementById("emulationHeader").clientHeight + "px";
+        document.getElementById("emulationHeader").clientHeight +
+		  (/Firefox/.test(navigator.userAgent) | 0) * 3 + "px";
   } else {
     document.getElementById("assemblyCodeHeader").style.top =
         heightOfTheGreetings + "px";
@@ -551,6 +569,12 @@ function deletePCpointer() {
   for (let i = 0; i < machineCode.length; i++)
     document.getElementById("PC_label_" + formatAsAddress(i)).innerHTML = "";
 }
+function formatRegisterHeader(i, alternatives) {
+  const registerName = "s" + i.toString(16);
+  if (alternatives.length === 0)
+    return registerName;
+  return `<abbr tabindex="0" title="${alternatives.join(", ")}">${registerName}</abbr>`;
+}
 function drawTable() {
   let tableHTML = `
   <button id="downloadHex"><img src="https://icons.getbootstrap.com/assets/icons/download.svg" alt="Download Hexadecimal"></button>
@@ -596,7 +620,8 @@ Displaying registers and flags on every step is useful for debugging, but it slo
 <th>Registers</th>
   `;
   for (let i = 0; i < 16; i++)
-    registersTable += "<th>s" + i.toString(16) + "</th>";
+    registersTable +=
+        "<th>" + formatRegisterHeader(i, reverse_nameregs[i]) + "</th>";
   registersTable += "<th>PC</th>";
   registersTable += '</tr><tr class="regbank_a"><th>REGBANK A</th>';
   for (let i = 0; i < 16; i++)
@@ -687,9 +712,10 @@ function downloadHex() {
   } else if (/Dolphin/.test(navigator.userAgent))
     alert(
         "It's detected you are using Dolphin. 'Download Hexadecimal' didn't work there when we tested it.");
-  else if (/Mobile.+OPR/.test(navigator.userAgent))
+  else if (/Mobile.+OPR/.test(navigator.userAgent) ||
+	   /DuckDuckGo/.test(navigator.userAgent))
     alert(
-        "It's detected you are using the Opera Mini browser. The last time we tested it, 'Download Hexadecimal' caused it to 'download' a corrupted file.");
+        "It's detected you are using the Opera Mini or the DuckDuckGo browser. The last time we tested this feature of exporting the hexadecimal file in those browsers, 'Download Hexadecimal' caused them to 'download' a corrupted file.");
 
   /*
   The following code is loosely based on:
@@ -796,5 +822,5 @@ function fetchExample(exampleName) {
 }
 
 if (typeof Bun !== "undefined") {
-  module.exports = {formatAsAddress};
+  module.exports = {formatAsAddress, formatRegisterHeader};
 }

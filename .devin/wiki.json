@@ -7,7 +7,7 @@
   "pages": [
     {
       "title": "Project Overview",
-      "purpose": "High-level introduction to the PicoBlaze Simulator in JS: what it is, why it was built (the 2020 pandemic in which the access to real PicoBlaze was limited), how to access it, and how the major subsystems relate. Links to child pages for architecture, the assembler pipeline, the emulator, example programs, the backend, and testing.",
+      "purpose": "High-level introduction to the PicoBlaze Simulator in JS: what it is, why it was built (the 2020 pandemic in which the access to real PicoBlaze was limited), how to access it (it is available on GitHub Pages, SourceForge, and Microsoft Azure), and how the major subsystems relate. Links to child pages for architecture, the assembler pipeline, the emulator, example programs, the backend, and testing.",
       "page_notes": [
         {
           "content": ""
@@ -55,7 +55,7 @@
     },
     {
       "title": "Parser",
-      "purpose": "Detailed documentation of parser.js: multi-pass token-to-AST conversion, control-flow block handling (if/else/endif, while/endwhile), parenthesis recursion, operator-precedence hierarchy (mention which operators have the highest and which ones have the lowest priority when parsing), ternary operator resolution (mention that this parser is using the controversial scanning-backwards method to parse right-associative operators such as the ternary conditional operator), and type checking via TreeNode.checkTypes().",
+      "purpose": "Detailed documentation of parser.js: multi-pass token-to-AST conversion, control-flow block handling (if/else/endif, while/endwhile), parenthesis recursion, operator-precedence hierarchy (mention which operators have the highest and which ones have the lowest priority when parsing), ternary operator resolution (mention that this parser is using the controversial scanning-backwards method to parse right-associative operators such as the ternary conditional operator, first searching for `:` and only later searching for the `?` preceding it), and type checking via TreeNode.checkTypes().",
       "parent": "Assembler Pipeline",
       "page_notes": [
         {
@@ -133,7 +133,7 @@
     },
     {
       "title": "Layout, Styling, and Syntax Highlighting",
-      "purpose": "Details of styles.css and headerScript.js UI responsibilities: fixed-width mobile-first layout, absolute-positioned panes (assemblyCode editor, machineCode table, simulationResults, UART_IO), CSS classes for syntax highlighting (.mnemonic, .register, .flag, .label, .directive, .comment), simulation feedback classes (.changed, .turning_off, .active, .inactive), responsive navigation ribbon, and the syntaxHighlighter() function.",
+      "purpose": "Details of styles.css and headerScript.js UI responsibilities: fixed-width mobile-first layout, absolute-positioned panes (assemblyCode editor, machineCode table, simulationResults, UART_IO), CSS classes for syntax highlighting (.mnemonic, .register, .flag, .label, .directive, .comment), simulation feedback classes (.changed, .turning_off, .active, .inactive), responsive navigation ribbon, and the syntaxHighlighter() function. Also mention that the register names for which alternate names (nameregs) exist in the assembly code are stored in an HTML abbr element so that the user can see the alternative name by hovering the mouse over it.",
       "parent": "Web IDE — Frontend Architecture",
       "page_notes": [
         {
@@ -270,7 +270,7 @@
     },
     {
       "title": "Easter eggs",
-      "purpose": "Mention the SVG PacMan game using the database for storing the highscores and the two surveys storing their results into the database. Mention that the survey about superbacteria contains the complicated MySQL code for calculating the median.",
+      "purpose": "Mention the SVG PacMan game using the database for storing the highscores and the two surveys storing their results into the database. Mention that the survey about superbacteria contains the complicated MySQL code for calculating the median. Mention that the PacMan game is different from most other PacMan games in that it is playable on smartphones by the PacMan going in the direction of where in the maze the user most recently tapped, and that it is also unusual by PacMan having three arrows which it can use to shoot the ghosts so that they return back into the middle of the maze.",
       "page_notes": [
         {
           "content": ""
